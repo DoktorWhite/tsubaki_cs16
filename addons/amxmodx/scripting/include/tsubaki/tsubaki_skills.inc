@@ -1472,6 +1472,8 @@
         // Bullet
         previous_ent = CreateBullet(SNAKE_PROTECT_BULLET, COMMON_BULLET_MODEL, .solid_type=DEFAULT_BULLET_SOLID, .movetype=MOVETYPE_NOCLIP, .owner=owner, .r=colors[0], .g=colors[1], .b=colors[2], .a=colors[3], .damage=damage);
         if(previous_ent == -1) return;
+    
+        te_create_beam_between_entities(owner, previous_ent, LASER_BEAM_SPRITE_ID, .life=RoundFloat(last_time*10-1), .framerate=0, .width=5, .r=255, .b=255, .a=200, .reliable=false);
 
         iuser[previous_ent][0] = 0;         //Head
         TeleportEntity(previous_ent, origin);
