@@ -15,7 +15,7 @@
 
 #include <tsubaki_skills/tsubaki_common>
 
-#pragma semicolon 1
+//#pragma semicolon 1
 
 new bool:BULLET_REGISTERED = false;     //Is Touch and Think being registered?
 
