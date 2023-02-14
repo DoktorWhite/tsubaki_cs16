@@ -2143,24 +2143,18 @@ new bool:BULLET_REGISTERED = false;     //Is Touch and Think being registered?
     * Snake Protect
     *
     * @param bullet_model 彈幕模組
+    * @param laser_sprite_id Laser Sprite ID
     * @param origin 生成位置
-    * @param target 目標
     * @param owner 主人
     * @param bullet_amount 彈幕數
-    * @param stage 移動<->休息的次數
-    * @param min_radius 隨機移動時，目的地距離生成位置的最小半徑
-    * @param max_radius 隨機移動時，目的地距離生成位置的最大半徑
-    * @param switch=delay 速度
+    * @param acceleration 向主人方向的加速度
     * @param last_time 彈幕存在時間
-    * @param damage 彈幕傷害
+    * @param delay_per_bullet 每N秒彈幕運動更新
     * @param colors 彈幕顏色
-    * @param colors_final 向目標移動時彈幕顏色
     * @param damage 彈幕傷害
     *
     */
-    
-    //Snake Protect
-    #define MAX_SNAKE_PROTECT_AMOUNT	8
+    #define MAX_SNAKE_PROTECT_AMOUNT	16
     stock SnakeProtect(const bullet_model[], laser_sprite_id, Float:origin[3], owner, bullet_amount=8, Float:acceleration=250.0, 
                         Float:last_time=15.0, Float:delay_per_bullet=0.1, 
                         colors[4]={255,255,0,16}, Float:damage=DEFAULT_BULLET_DMG)
