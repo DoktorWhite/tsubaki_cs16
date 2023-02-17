@@ -3,19 +3,9 @@
 #endif
 #define _tsubaki_bullet
 
-#include <amxmodx>
-#include <amxmisc>
-#include <cstrike>
-#include <engine>
-#include <fakemeta>
-#include <fakemeta_util>
-#include <fun>
-#include <hamsandwich>
-#include <msgstocks>
-
 #include <tsubaki_skills/tsubaki_common>
 
-//#pragma semicolon 1
+#pragma semicolon 1
 
 new bool:BULLET_REGISTERED = false;     //Is Touch and Think being registered?
 
@@ -2283,3 +2273,5 @@ new bool:BULLET_REGISTERED = false;     //Is Touch and Think being registered?
             }
 
         }
+
+#pragma semicolon 0
