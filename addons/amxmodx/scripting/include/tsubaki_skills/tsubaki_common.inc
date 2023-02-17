@@ -4,8 +4,14 @@
 #define _tsubaki_common
 
 #include <amxmodx>
-#include <fakemeta>
+#include <amxmisc>
+#include <cstrike>
 #include <engine>
+#include <fakemeta>
+#include <fakemeta_util>
+#include <fun>
+#include <hamsandwich>
+#include <msgstocks>
 
     
     /* Maths  */
@@ -40,7 +46,8 @@
     stock CreateRGBAInt(R, G, B, A) {return (A<<24) + (R<<16) + (G<<8) + B;}
     stock CreateRGBAIntByArray(colors[4]) {return (colors[3]<<24) + (colors[0]<<16) + (colors[1]<<8) + colors[2];}
 
-    stock CopyVector(Float:dest[3], Float:source[3]) { dest[0] = source[0]; dest[1] = source[1]; dest[2] = source[2]; }
+    #define CopyVector(%0,%1) %0[0]=%1[0]; %0[1]=%1[1]; %0[2]=%1[2]
+    //stock CopyVector(Float:dest[3], Float:source[3]) { dest[0] = source[0]; dest[1] = source[1]; dest[2] = source[2]; }
     #define ResetVector(%0) %0[0]=%0[1]=%0[2]=0.0
     #define GetVectorLength(%0) vector_length(%0)
 
@@ -86,9 +93,9 @@
     #define GetClientAbsOrigin(%0,%1) entity_get_vector(%0,EV_VEC_origin,%1)
     #define GetPlayerAimOrigin(%0,%1) fm_get_aim_origin(%0,%1)
     #define GetPlayerViewAngle(%0,%1) entity_get_vector(%0, EV_VEC_v_angle, %1)
+    #define GetClientEyeAngles(%0,%1) GetPlayerViewAngle(%0,%1)
     #define GetEntityVelocity(%0,%1) get_user_velocity(%0,%1)
     #define SetEntityVelocity(%0,%1) entity_set_vector(%0, EV_VEC_velocity, %1)
-    #define GetClientEyeAngles(%0,%1) entity_get_vector(%0, EV_VEC_v_angle, %1)
     #define SetEntityGravity(%0,%1) set_pev(%0,pev_gravity,%1)
     #define SetEntityOwner(%0,%1)		entity_set_edict(%0, EV_ENT_owner, %1)
     #define GetEntityOwner(%0)			entity_get_edict(%0, EV_ENT_owner)
@@ -218,7 +225,7 @@
         return reliable ? MSG_ONE : MSG_ONE_UNRELIABLE;
     }
 
-    stock TBKCreateBeamBetweenTwoPoints(Float:startpos[3], Float:endpos[3], sprite, startframe = 0, framerate = 30, Float:last_time = 1.0, width = 10, noise = 0, r = 0, g = 0, b = 255, a = 75, speed = 0, receiver = 0, bool:reliable = false)
+    stock TBKCreateBeamBetweenTwoPoints(const Float:startpos[3], const Float:endpos[3], sprite, startframe = 0, framerate = 30, Float:last_time = 1.0, width = 10, noise = 0, r = 0, g = 0, b = 255, a = 75, speed = 0, receiver = 0, bool:reliable = false)
     {
         if(receiver && !is_user_connected(receiver))
             return 0;
@@ -281,4 +288,57 @@
         message_end();
 
         return 1;
+    }
+
+/*  Traceline  */
+
+    stock FireNonPenetrateTraceline(const Float:start[3], const Float:dest[3], Float:output[3], &hit=0, &hit_group=0, const skip_ent=0, &Float:fraction=0.0) {
+        hit = trace_line(skip_ent, start, dest, output);
+
+        hit_group = traceresult(TR_Hitgroup);
+        traceresult(TR_Fraction, fraction);
+    }
+
+    stock FirePenetrateTraceline(const Float:start[3], const Float:dest[3], Float:output[3], hits[MAX_PLAYERS], hit_groups[MAX_PLAYERS]="", const skip_ent=0, &Float:fraction=0.0, Float:penetrate_power=30.0) {
+        static previous_hit, Float:previous_fraction, hit, i, Float:angles[3];
+        CopyVector(output, start);
+
+        angles[0] = dest[0] - start[0];
+        angles[1] = dest[1] - start[1];
+        angles[2] = dest[2] - start[2];
+        GetVectorAngles(angles, angles);
+        angles[0] = ToRadian(angles[0]);
+        angles[1] = ToRadian(angles[1]);
+        angles[2] = ToRadian(angles[2]);
+
+        hit = skip_ent;
+        i = 0;
+
+        do{
+            hit = trace_line(hit, output, dest, output);
+            traceresult(TR_Fraction, fraction);
+            //server_print("previous:%d  hit:%d  fraction:%f", previous_hit, hit, fraction);
+
+            if(1<=hit<=MaxClients) {
+                hits[i] = hit;
+                hit_groups[i] = traceresult(TR_Hitgroup);
+                i++;
+            } 
+
+            if(hit == 0) {
+                //Assume the traceline hit a hard wall
+                if(previous_hit==0 && previous_fraction<=0.00001 && fraction<=0.00001){
+                    break;
+                }
+
+                output[0] += penetrate_power * Cosine(angles[0]) * Cosine(angles[1]);
+                output[1] += penetrate_power * Cosine(angles[0]) *   Sine(angles[1]);
+                output[2] += penetrate_power *   Sine(angles[0]);
+            }
+
+            previous_hit = hit;
+            previous_fraction = fraction;
+        }while(fraction!=1.0);
+
+        return i;
     }
